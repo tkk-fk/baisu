@@ -1,0 +1,2105 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+  <title>ばいすうアプリ｜特別支援教材開発研究所</title>
+  <style>
+    /* =========================================
+       基本設定・デザイン変数
+       ========================================= */
+    :root {
+      --bg-gradient: linear-gradient(160deg, #f0f7ff 0%, #fef9ef 100%);
+      --surface: #ffffff;
+      --surface-soft: #f8fafc;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+
+      /* アクセントカラー */
+      --primary: #3b82f6;
+      --primary-dark: #2563eb;
+      --primary-light: #eff6ff;
+      --accent: #f59e0b;
+      --accent-dark: #d97706;
+      --accent-light: #fef3c7;
+      --success: #10b981;
+      --success-dark: #059669;
+      --danger: #ef4444;
+      --danger-light: #fef2f2;
+
+      /* タップ塗りつぶしパレット色 */
+      --paint-yellow-bg: #fde047;
+      --paint-yellow-border: #eab308;
+      --paint-yellow-text: #713f12;
+
+      --paint-blue-bg: #7dd3fc;
+      --paint-blue-border: #0284c7;
+      --paint-blue-text: #0c4a6e;
+
+      --paint-green-bg: #86efac;
+      --paint-green-border: #16a34a;
+      --paint-green-text: #14532d;
+
+      --paint-pink-bg: #f9a8d4;
+      --paint-pink-border: #db2777;
+      --paint-pink-text: #831843;
+
+      /* 公倍数ハイライト色 */
+      --cm-bg: #ffedd5;
+      --cm-border: #f97316;
+      --cm-text: #9a3412;
+      --cm-glow: rgba(249, 115, 22, 0.35);
+
+      --radius-sm: 10px;
+      --radius-md: 16px;
+      --radius-lg: 24px;
+      --shadow-sm: 0 2px 6px rgba(15, 23, 42, 0.06);
+      --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", "BIZ UDPGothic", "Yu Gothic UI", "Meiryo", sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      min-height: 100dvh;
+      line-height: 1.5;
+      overflow-x: hidden;
+      overscroll-behavior: none;
+      touch-action: manipulation;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    html { overscroll-behavior: none; }
+
+    button {
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: inherit;
+      touch-action: manipulation;
+    }
+
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* =========================================
+       トースト通知（alertの代替）
+       ========================================= */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e293b;
+      color: #ffffff;
+      padding: 12px 22px;
+      border-radius: 999px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      max-width: 90vw;
+      text-align: center;
+    }
+
+    .toast.show {
+      opacity: 1;
+    }
+
+    /* =========================================
+       1. 設定画面
+       ========================================= */
+    #setup-screen {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 20px 16px 40px;
+    }
+
+    .app-hero {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .app-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .app-title {
+      font-size: clamp(1.7rem, 5vw, 2.3rem);
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: 0.04em;
+    }
+
+    .app-subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-top: 4px;
+    }
+
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      padding: 22px 20px;
+      box-shadow: var(--shadow-md);
+      border: 2px solid rgba(226, 232, 240, 0.8);
+      margin-bottom: 18px;
+    }
+
+    .section-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1.05rem;
+      font-weight: 800;
+      margin-bottom: 14px;
+      color: var(--text-main);
+    }
+
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      font-size: 0.9rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    /* モード切替タブ */
+    .mode-switcher {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .mode-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px 12px;
+      border-radius: var(--radius-md);
+      border: 3px solid var(--border);
+      background: var(--surface-soft);
+      text-align: center;
+    }
+
+    .mode-btn .mode-icon {
+      font-size: 1.7rem;
+      margin-bottom: 4px;
+    }
+
+    .mode-btn .mode-name {
+      font-size: 1.1rem;
+      font-weight: 800;
+    }
+
+    .mode-btn .mode-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .mode-btn.active {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.18);
+    }
+
+    .mode-btn.active .mode-desc {
+      color: #1d4ed8;
+    }
+
+    /* 順番モード設定 */
+    .order-panel {
+      background: var(--surface-soft);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      border: 1px solid var(--border);
+    }
+
+    .order-display {
+      text-align: center;
+      font-size: 1.25rem;
+      font-weight: 800;
+      margin-bottom: 14px;
+      color: var(--primary-dark);
+    }
+
+    .order-display span {
+      display: inline-block;
+      background: #fff;
+      border: 2px solid var(--primary);
+      border-radius: 10px;
+      padding: 2px 12px;
+      margin: 0 4px;
+      font-size: 1.4rem;
+    }
+
+    .stepper-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .circle-btn {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid var(--primary);
+      color: var(--primary-dark);
+      font-size: 1.5rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 3px 0 #bfdbfe;
+    }
+
+    @media (hover: hover) {
+      .circle-btn:hover:not(:disabled) {
+        background: var(--primary-light);
+      }
+    }
+
+    .range-slider {
+      flex: 1;
+      min-width: 140px;
+      max-width: 260px;
+      accent-color: var(--primary);
+      height: 10px;
+      cursor: pointer;
+    }
+
+    .preset-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .chip-btn {
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: #fff;
+      border: 2px solid var(--border);
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .chip-btn.active {
+      background: var(--primary);
+      border-color: var(--primary-dark);
+      color: #fff;
+    }
+
+    /* カスタムモード設定 */
+    .custom-panel {
+      background: var(--surface-soft);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      border: 1px solid var(--border);
+    }
+
+    .custom-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .selected-preview {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+    }
+
+    .text-link-btn {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--danger);
+      padding: 6px 10px;
+      border-radius: 8px;
+      background: var(--danger-light);
+    }
+
+    .num-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+    }
+
+    @media (min-width: 520px) {
+      .num-grid {
+        grid-template-columns: repeat(10, 1fr);
+      }
+    }
+
+    .num-pick-btn {
+      aspect-ratio: 1 / 1;
+      min-height: 46px;
+      border-radius: 14px;
+      background: #fff;
+      border: 2px solid var(--border);
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--text-main);
+      box-shadow: 0 3px 0 var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    @media (hover: hover) {
+      .num-pick-btn:hover {
+        border-color: var(--primary);
+      }
+    }
+
+    .num-pick-btn.selected {
+      background: var(--primary);
+      border-color: var(--primary-dark);
+      color: #fff;
+      box-shadow: 0 3px 0 #1d4ed8;
+    }
+
+    /* 範囲設定 */
+    .limit-mode-tabs {
+      display: inline-flex;
+      background: var(--surface-soft);
+      padding: 4px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      margin-bottom: 14px;
+    }
+
+    .limit-tab {
+      padding: 8px 14px;
+      border-radius: 9px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .limit-tab.active {
+      background: #fff;
+      color: var(--primary-dark);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .limit-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .limit-value-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 1.15rem;
+    }
+
+    .limit-number-input {
+      width: 90px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      border: 2px solid var(--primary);
+      font-family: inherit;
+      font-size: 1.25rem;
+      font-weight: 800;
+      text-align: center;
+      color: var(--primary-dark);
+      background: #fff;
+    }
+
+    /* 大きなOKボタン */
+    .ok-btn {
+      width: 100%;
+      padding: 18px 24px;
+      border-radius: 20px;
+      background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
+      color: #fff;
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      box-shadow: 0 6px 0 #15803d, 0 12px 24px rgba(22, 163, 74, 0.28);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    @media (hover: hover) {
+      .ok-btn:hover:not(:disabled) {
+        filter: brightness(1.04);
+      }
+    }
+
+    .ok-btn:active:not(:disabled) {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #15803d, 0 4px 10px rgba(22, 163, 74, 0.22);
+    }
+
+    /* =========================================
+       2. 倍数表示画面
+       ========================================= */
+    #board-screen {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* 上部ヘッダー */
+    .board-header {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(8px);
+      border-bottom: 2px solid var(--border);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: var(--surface-soft);
+      border: 2px solid var(--border);
+      font-weight: 800;
+      font-size: 0.92rem;
+      color: var(--text-main);
+    }
+
+    @media (hover: hover) {
+      .btn-back:hover {
+        background: #e2e8f0;
+      }
+    }
+
+    .board-summary {
+      font-weight: 800;
+      font-size: 0.98rem;
+      color: var(--primary-dark);
+      background: var(--primary-light);
+      padding: 6px 12px;
+      border-radius: 10px;
+    }
+
+    .btn-reset {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: var(--danger-light);
+      border: 2px solid #fecaca;
+      color: var(--danger);
+      font-weight: 800;
+      font-size: 0.9rem;
+    }
+
+    @media (hover: hover) {
+      .btn-reset:hover {
+        background: #fee2e2;
+      }
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn-print {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: var(--primary-light);
+      border: 2px solid #bfdbfe;
+      color: var(--primary-dark);
+      font-weight: 800;
+      font-size: 0.9rem;
+    }
+
+    @media (hover: hover) {
+      .btn-print:hover {
+        background: #dbeafe;
+      }
+    }
+
+    /* 印刷専用ヘッダー（通常画面では非表示） */
+    .print-header {
+      display: none;
+    }
+
+    /* コントロールバー */
+    .toolbar {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      padding: 12px 14px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .tool-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tool-label {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: var(--text-muted);
+      margin-right: 2px;
+    }
+
+    /* カラーパレット */
+    .color-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.95rem;
+      font-weight: 800;
+    }
+
+    .color-btn.yellow { background: var(--paint-yellow-bg); border-color: var(--paint-yellow-border); color: var(--paint-yellow-text); }
+    .color-btn.blue   { background: var(--paint-blue-bg); border-color: var(--paint-blue-border); color: var(--paint-blue-text); }
+    .color-btn.green  { background: var(--paint-green-bg); border-color: var(--paint-green-border); color: var(--paint-green-text); }
+    .color-btn.pink   { background: var(--paint-pink-bg); border-color: var(--paint-pink-border); color: var(--paint-pink-text); }
+    .color-btn.eraser { background: #fff; border-color: #94a3b8; color: #475569; font-size: 0.78rem; width: auto; padding: 0 12px; border-radius: 999px; }
+
+    .color-btn.active {
+      box-shadow: 0 0 0 3px #fff, 0 0 0 6px var(--primary);
+    }
+
+    /* 公倍数ボタン */
+    .cm-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 14px;
+      background: #fff7ed;
+      border: 2px solid #fdba74;
+      color: #c2410c;
+      font-weight: 800;
+      font-size: 0.98rem;
+      box-shadow: 0 3px 0 #fed7aa;
+    }
+
+    .cm-toggle-btn.active {
+      background: linear-gradient(180deg, #fb923c 0%, #f97316 100%);
+      border-color: #ea580c;
+      color: #fff;
+      box-shadow: 0 3px 0 #c2410c;
+    }
+
+    /* 表示形式切替（セグメント） */
+    .layout-toggle {
+      display: inline-flex;
+      background: var(--surface-soft);
+      padding: 4px;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+    }
+
+    .layout-btn {
+      padding: 7px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--text-muted);
+    }
+
+    .layout-btn.active {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* 最小公倍数（LCM）インフォバナー */
+    .lcm-banner {
+      margin: 12px 14px 4px;
+      padding: 14px 18px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, #fffbeb 0%, #ffedd5 100%);
+      border: 2px solid #fb923c;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .lcm-main {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .lcm-badge {
+      background: #f97316;
+      color: #fff;
+      font-weight: 800;
+      font-size: 0.85rem;
+      padding: 4px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .lcm-msg {
+      font-size: 1rem;
+      font-weight: 800;
+      color: #7c2d12;
+    }
+
+    .lcm-value {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #9a3412;
+    }
+
+    .lcm-sub {
+      font-size: 0.9rem;
+      color: #7c2d12;
+      font-weight: 600;
+    }
+
+    .jump-lcm-btn {
+      padding: 8px 14px;
+      border-radius: 10px;
+      background: #fff;
+      border: 2px solid #f97316;
+      color: #c2410c;
+      font-size: 0.85rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    /* ヒントテキスト */
+    .board-hint {
+      padding: 8px 16px 4px;
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* 倍数スクロールエリア */
+    .board-scroll-wrap {
+      flex: 1;
+      overflow-x: auto;
+      overflow-y: auto;
+      padding: 8px 14px 36px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .board-table {
+      display: inline-flex;
+      flex-direction: column;
+      gap: 10px;
+      min-width: 100%;
+    }
+
+    /* 数直線モードの目盛り行 */
+    .ruler-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding-bottom: 4px;
+      border-bottom: 2px dashed var(--border);
+    }
+
+    .ruler-spacer {
+      position: sticky;
+      left: 0;
+      z-index: 20;
+      width: 108px;
+      min-width: 108px;
+      background: #f4f8fc;
+      padding: 6px 8px;
+      border-radius: 10px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    .ruler-tick {
+      width: 54px;
+      min-width: 54px;
+      text-align: center;
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: var(--text-muted);
+      padding: 2px 0;
+      border-radius: 6px;
+    }
+
+    .ruler-tick.is-cm {
+      background: #ffedd5;
+      color: #c2410c;
+    }
+
+    /* 各倍数の行 */
+    .mult-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.75);
+      padding: 6px 8px 6px 0;
+      border-radius: 16px;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+    }
+
+    /* 左端固定の見出し */
+    .row-label {
+      position: sticky;
+      left: 0;
+      z-index: 15;
+      width: 108px;
+      min-width: 108px;
+      padding: 12px 10px;
+      border-radius: 14px;
+      font-weight: 800;
+      font-size: 0.95rem;
+      text-align: center;
+      color: #fff;
+      box-shadow: 4px 0 10px rgba(15, 23, 42, 0.08);
+      flex-shrink: 0;
+    }
+
+    button.row-label { cursor: pointer; font-family: inherit; }
+
+    .row-label.off {
+      background-color: #e2e8f0 !important;
+      color: #94a3b8;
+      box-shadow: none;
+    }
+
+    .cells-container {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* 数字カード */
+    .num-cell {
+      width: 54px;
+      min-width: 54px;
+      height: 54px;
+      border-radius: 14px;
+      background: #ffffff;
+      border: 2px solid #cbd5e1;
+      font-size: 1.12rem;
+      font-weight: 800;
+      color: var(--text-main);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      user-select: none;
+      box-shadow: 0 3px 0 #e2e8f0;
+    }
+
+    @media (hover: hover) {
+      .num-cell:hover {
+        border-color: var(--primary);
+      }
+    }
+
+    /* 桁数が多い数字の自動縮小 */
+    .num-cell.digits-3 { font-size: 1.0rem; }
+    .num-cell.digits-4 { font-size: 0.86rem; }
+
+    /* 数直線モードの空きマス */
+    .empty-cell {
+      width: 54px;
+      min-width: 54px;
+      height: 54px;
+      border-radius: 12px;
+      background: rgba(226, 232, 240, 0.28);
+      border: 1px dashed rgba(203, 213, 225, 0.65);
+      flex-shrink: 0;
+    }
+
+    /* 手動カラー塗りつぶし状態 */
+    .num-cell.paint-yellow {
+      background: var(--paint-yellow-bg);
+      border-color: var(--paint-yellow-border);
+      color: var(--paint-yellow-text);
+      box-shadow: 0 3px 0 #ca8a04;
+    }
+
+    .num-cell.paint-blue {
+      background: var(--paint-blue-bg);
+      border-color: var(--paint-blue-border);
+      color: var(--paint-blue-text);
+      box-shadow: 0 3px 0 #0369a1;
+    }
+
+    .num-cell.paint-green {
+      background: var(--paint-green-bg);
+      border-color: var(--paint-green-border);
+      color: var(--paint-green-text);
+      box-shadow: 0 3px 0 #15803d;
+    }
+
+    .num-cell.paint-pink {
+      background: var(--paint-pink-bg);
+      border-color: var(--paint-pink-border);
+      color: var(--paint-pink-text);
+      box-shadow: 0 3px 0 #be185d;
+    }
+
+    /* 公倍数ハイライト状態 */
+    .num-cell.cm-highlight {
+      border: 3px solid var(--cm-border);
+      box-shadow: 0 0 0 3px var(--cm-glow), 0 3px 0 #ea580c;
+      z-index: 2;
+    }
+
+    /* 手塗りがない公倍数には自動でオレンジ系の背景をつける */
+    .num-cell.cm-highlight:not(.paint-yellow):not(.paint-blue):not(.paint-green):not(.paint-pink) {
+      background: var(--cm-bg);
+      color: var(--cm-text);
+    }
+
+    /* 公倍数バッジ（★ / 最小） */
+    .cm-tag {
+      position: absolute;
+      top: -9px;
+      right: -6px;
+      background: #f97316;
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 1px 5px;
+      border-radius: 999px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.18);
+      line-height: 1.3;
+      pointer-events: none;
+    }
+
+    .cm-tag.is-lcm {
+      background: #e11d48;
+      padding: 1px 6px;
+    }
+
+
+    /* モバイル向け微調整 */
+    @media (max-width: 520px) {
+      .row-label,
+      .ruler-spacer {
+        width: 88px;
+        min-width: 88px;
+        font-size: 0.85rem;
+        padding: 10px 6px;
+      }
+
+      .num-cell,
+      .empty-cell,
+      .ruler-tick {
+        width: 48px;
+        min-width: 48px;
+      }
+
+      .num-cell,
+      .empty-cell {
+        height: 48px;
+        font-size: 1.02rem;
+      }
+
+      .board-header {
+        padding: 8px 10px;
+      }
+
+      .toolbar {
+        padding: 10px;
+      }
+    }
+
+    /* =========================================
+       印刷用スタイル（A4プリント対応）
+       ========================================= */
+    @page {
+      margin: 10mm;
+    }
+
+    @media print {
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      body {
+        background: #ffffff !important;
+        min-height: auto;
+      }
+
+      /* 不要なUIを非表示 */
+      #setup-screen,
+      .board-header,
+      .toolbar,
+      .board-hint,
+      .jump-lcm-btn,
+      .toast {
+        display: none !important;
+      }
+
+      #board-screen {
+        display: block !important;
+        min-height: auto;
+      }
+
+      /* 印刷用タイトルとなまえ欄 */
+      .print-header {
+        display: flex !important;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 12px;
+        border-bottom: 2px solid #334155;
+        padding-bottom: 8px;
+        margin-bottom: 12px;
+      }
+
+      .print-title {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: #0f172a;
+      }
+
+      .print-name-box {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #334155;
+        white-space: nowrap;
+      }
+
+      .lcm-banner {
+        margin: 0 0 12px !important;
+        padding: 8px 12px !important;
+        box-shadow: none !important;
+        break-inside: avoid;
+      }
+
+      .board-scroll-wrap {
+        overflow: visible !important;
+        padding: 0 !important;
+      }
+
+      .board-table {
+        display: flex !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        gap: 8px !important;
+      }
+
+      .mult-row {
+        align-items: flex-start;
+        background: #ffffff !important;
+        border: 1px solid #cbd5e1;
+        box-shadow: none !important;
+        padding: 6px !important;
+        border-radius: 10px !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .row-label,
+      .ruler-spacer {
+        position: static !important;
+        width: 82px !important;
+        min-width: 82px !important;
+        padding: 6px 4px !important;
+        font-size: 0.8rem !important;
+        box-shadow: none !important;
+        border-radius: 8px !important;
+      }
+
+      /* 「詰めて並べる」モードは用紙幅で自動折り返し */
+      .board-table.layout-packed .cells-container {
+        flex-wrap: wrap !important;
+        gap: 4px !important;
+      }
+
+      /* 印刷時はマスをコンパクトにして1ページに収まりやすくする */
+      .num-cell,
+      .empty-cell {
+        width: 34px !important;
+        min-width: 34px !important;
+        height: 34px !important;
+        border-radius: 8px !important;
+        font-size: 0.82rem !important;
+        box-shadow: none !important;
+      }
+
+      .num-cell.digits-3 { font-size: 0.72rem !important; }
+      .num-cell.digits-4 { font-size: 0.62rem !important; }
+
+      .ruler-tick {
+        width: 34px !important;
+        min-width: 34px !important;
+        font-size: 0.68rem !important;
+      }
+
+      .num-cell.cm-highlight {
+        transform: none !important;
+        box-shadow: none !important;
+      }
+
+      /* 「同じ数でそろえる」は20ずつに区切って印刷 */
+      .print-block {
+        display: flex;
+        flex-direction: column;
+        gap: 1mm;
+        margin-bottom: 4mm;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .board-table.layout-aligned .mult-row {
+        border: none;
+        padding: 0 !important;
+        gap: 1mm;
+        align-items: center;
+      }
+
+      .board-table.layout-aligned .ruler-row {
+        gap: 1mm;
+        padding-bottom: 0.5mm;
+      }
+
+      .board-table.layout-aligned .cells-container {
+        gap: 1mm;
+      }
+
+      .board-table.layout-aligned .row-label,
+      .board-table.layout-aligned .ruler-spacer {
+        width: 20mm !important;
+        min-width: 20mm !important;
+        padding: 1mm !important;
+        font-size: 8pt !important;
+      }
+
+      .board-table.layout-aligned .num-cell,
+      .board-table.layout-aligned .empty-cell,
+      .board-table.layout-aligned .ruler-tick {
+        width: 7mm !important;
+        min-width: 7mm !important;
+        font-size: 8pt !important;
+        border-radius: 1.5mm !important;
+      }
+
+      .board-table.layout-aligned .num-cell,
+      .board-table.layout-aligned .empty-cell {
+        height: 7mm !important;
+        border-width: 1px;
+      }
+
+      .board-table.layout-aligned .num-cell.digits-3 { font-size: 6.5pt !important; }
+
+      .board-table.layout-aligned .num-cell.cm-highlight { border-width: 2px; }
+
+      .board-table.layout-aligned .cm-tag { display: none; }
+
+      .row-label.off {
+        background-color: #e2e8f0 !important;
+        color: #94a3b8 !important;
+      }
+
+      .cm-tag {
+        top: -7px;
+        right: -4px;
+        font-size: 0.52rem;
+        padding: 0 3px;
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- トースト通知 -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- =========================================
+       1. 設定画面
+       ========================================= -->
+  <main id="setup-screen">
+    <header class="app-hero">
+      <h1 class="app-title">ばいすうアプリ</h1>
+    </header>
+
+    <!-- ステップ1：モード選択 -->
+    <section class="card">
+      <h2 class="section-label">
+        <span class="step-num">1</span>
+        ならべかたを えらぼう
+      </h2>
+
+      <div class="mode-switcher" role="tablist">
+        <button type="button" id="tab-order" class="mode-btn active" role="tab" aria-selected="true">
+          <span class="mode-name">順番</span>
+        </button>
+        <button type="button" id="tab-custom" class="mode-btn" role="tab" aria-selected="false">
+          <span class="mode-name">カスタム</span>
+        </button>
+      </div>
+
+      <!-- 順番モードパネル -->
+      <div id="panel-order" class="order-panel">
+        <div class="order-display">
+          1の倍数 〜 <span id="order-max-text">9</span> の倍数
+        </div>
+        <div class="stepper-row">
+          <button type="button" id="order-minus" class="circle-btn" aria-label="へらす">−</button>
+          <input type="range" id="order-slider" class="range-slider" min="2" max="50" value="9">
+          <button type="button" id="order-plus" class="circle-btn" aria-label="ふやす">＋</button>
+        </div>
+        <div class="preset-chips" id="order-presets">
+          <button type="button" class="chip-btn" data-val="5">1〜5</button>
+          <button type="button" class="chip-btn active" data-val="9">1〜9（九九）</button>
+          <button type="button" class="chip-btn" data-val="15">1〜15</button>
+          <button type="button" class="chip-btn" data-val="20">1〜20</button>
+          <button type="button" class="chip-btn" data-val="30">1〜30</button>
+          <button type="button" class="chip-btn" data-val="50">1〜50</button>
+        </div>
+      </div>
+
+      <!-- カスタムモードパネル -->
+      <div id="panel-custom" class="custom-panel hidden">
+        <div class="custom-header">
+          <div class="selected-preview" id="custom-preview"></div>
+          <button type="button" id="custom-clear" class="text-link-btn">ぜんぶはずす</button>
+        </div>
+        <div class="num-grid" id="custom-num-grid" aria-label="倍数の選択ボタン">
+          <!-- JSで1〜30のボタンを生成 -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ステップ2：表示範囲の設定 -->
+    <section class="card">
+      <h2 class="section-label">
+        <span class="step-num">2</span>
+        どこまで ひょうじする？
+      </h2>
+
+      <div class="limit-mode-tabs" role="tablist">
+        <button type="button" id="limit-tab-max" class="limit-tab active" role="tab">いくつまでの数</button>
+        <button type="button" id="limit-tab-count" class="limit-tab" role="tab">それぞれの個数</button>
+      </div>
+
+      <!-- 最大値指定 -->
+      <div id="limit-panel-max" class="limit-controls">
+        <div class="limit-value-row">
+          <input type="number" id="max-value-input" class="limit-number-input" min="10" max="500" value="100">
+          <span>まで ひょうじする</span>
+        </div>
+        <div class="stepper-row">
+          <input type="range" id="max-value-slider" class="range-slider" min="10" max="500" step="10" value="100" aria-label="いくつまでの数スライダー">
+        </div>
+        <div class="preset-chips" id="max-value-presets">
+          <button type="button" class="chip-btn" data-val="50">50まで</button>
+          <button type="button" class="chip-btn active" data-val="100">100まで</button>
+          <button type="button" class="chip-btn" data-val="200">200まで</button>
+          <button type="button" class="chip-btn" data-val="300">300まで</button>
+          <button type="button" class="chip-btn" data-val="500">500まで</button>
+        </div>
+      </div>
+
+      <!-- 個数指定 -->
+      <div id="limit-panel-count" class="limit-controls hidden">
+        <div class="limit-value-row">
+          <span>それぞれ</span>
+          <input type="number" id="count-value-input" class="limit-number-input" min="5" max="100" value="20">
+          <span>こ ならべる</span>
+        </div>
+        <div class="stepper-row">
+          <input type="range" id="count-value-slider" class="range-slider" min="5" max="100" step="5" value="20" aria-label="それぞれの個数スライダー">
+        </div>
+        <div class="preset-chips" id="count-value-presets">
+          <button type="button" class="chip-btn" data-val="10">10こ</button>
+          <button type="button" class="chip-btn active" data-val="20">20こ</button>
+          <button type="button" class="chip-btn" data-val="30">30こ</button>
+          <button type="button" class="chip-btn" data-val="50">50こ</button>
+          <button type="button" class="chip-btn" data-val="100">100こ</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- OKボタン -->
+    <button type="button" id="start-btn" class="ok-btn">
+      <span>OK</span>
+    </button>
+  </main>
+
+  <!-- =========================================
+       2. 倍数表示画面
+       ========================================= -->
+  <section id="board-screen" class="hidden">
+    <!-- 印刷専用ヘッダー（画面では非表示） -->
+    <div class="print-header">
+      <div id="print-title" class="print-title">ばいすうの表</div>
+      <div class="print-name-box">なまえ：＿＿＿＿＿＿＿＿＿＿＿＿</div>
+    </div>
+
+    <!-- ヘッダー -->
+    <header class="board-header">
+      <div class="header-left">
+        <button type="button" id="back-btn" class="btn-back">← 設定にもどる</button>
+        <div id="board-summary" class="board-summary">3・5の倍数（100まで）</div>
+      </div>
+      <div class="header-right">
+        <button type="button" id="print-btn" class="btn-print">印刷する</button>
+        <button type="button" id="reset-colors-btn" class="btn-reset">色を消す</button>
+      </div>
+    </header>
+
+    <!-- 操作ツールバー -->
+    <div class="toolbar">
+      <!-- タップ塗りつぶしカラーパレット -->
+      <div class="tool-group" role="group" aria-label="ぬる色をえらぶ">
+        <span class="tool-label">ぬる色：</span>
+        <button type="button" class="color-btn yellow active" data-color="yellow" aria-label="きいろ"></button>
+        <button type="button" class="color-btn blue" data-color="blue" aria-label="みずいろ"></button>
+        <button type="button" class="color-btn green" data-color="green" aria-label="みどり"></button>
+        <button type="button" class="color-btn pink" data-color="pink" aria-label="ピンク"></button>
+        <button type="button" class="color-btn eraser" data-color="eraser" title="けしゴム" aria-label="けしゴム">けす</button>
+      </div>
+
+      <!-- 公倍数トグル & 表示切替 -->
+      <div class="tool-group">
+        <button type="button" id="cm-btn" class="cm-toggle-btn" aria-pressed="false">
+          <span>公倍数</span>
+        </button>
+
+        <div class="layout-toggle" role="group" aria-label="ならべかた切替">
+          <button type="button" id="layout-packed" class="layout-btn active">詰めて並べる</button>
+          <button type="button" id="layout-aligned" class="layout-btn">同じ数でそろえる</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 最小公倍数（LCM）インフォメーション -->
+    <div id="lcm-banner" class="lcm-banner hidden">
+      <div class="lcm-main">
+        <span id="lcm-badge" class="lcm-badge">最小公倍数</span>
+        <span id="lcm-value" class="lcm-value"></span>
+        <span id="lcm-sub" class="lcm-msg"></span>
+      </div>
+      <button type="button" id="jump-lcm-btn" class="jump-lcm-btn hidden">最小公倍数へ →</button>
+    </div>
+
+    <!-- 倍数グリッド（横スクロール対応） -->
+    <div id="board-scroll-wrap" class="board-scroll-wrap">
+      <div id="board-table" class="board-table">
+        <!-- JSで動的に描画 -->
+      </div>
+    </div>
+  </section>
+
+  <script>
+    (function () {
+      'use strict';
+
+      /* =========================================
+         状態管理（State）
+         ========================================= */
+      const state = {
+        mode: 'order',              // 'order' | 'custom'
+        orderMax: 9,                // 順番モード：1〜N
+        customSelected: [3, 5],     // カスタムモード：選択された数（デフォルト3と5）
+        limitType: 'max',           // 'max'（〜まで） | 'count'（個数）
+        maxValue: 100,              // 最大値指定の値（10〜500）
+        countValue: 20,             // 個数指定の値（5〜100）
+
+        // 表示画面の状態
+        activeNumbers: [],          // 表示対象の倍数リスト（例: [3, 5]）
+        paintColor: 'yellow',       // 'yellow' | 'blue' | 'green' | 'pink' | 'eraser'
+        paintedCells: new Map(),    // key: `${base}-${val}`, value: color
+        showCommonMultiples: false, // 公倍数ハイライトON/OFF
+        layoutMode: 'packed',       // 'packed'（詰めて並べる） | 'aligned'（同じ数でそろえる）
+        lcmValue: null,             // 公倍数の対象にした行の最小公倍数
+        displayMaxValue: 100,       // 数直線モード用の最大表示数
+        cmTargets: new Set(),       // 公倍数をさがす対象の行（左の見出しタップで切替）
+        printing: false             // 印刷用レイアウトで描画中か
+      };
+
+      // 印刷時、「同じ数でそろえる」を何マスずつ区切るか
+      const PRINT_CHUNK = 20;
+      const ALIGNED_MAX_CELLS = 8000;
+
+
+      // 各行の見出し用カラーパレット
+      const ROW_COLORS = [
+        '#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6',
+        '#06b6d4', '#f97316', '#6366f1', '#14b8a6', '#e11d48'
+      ];
+
+      /* =========================================
+         DOM要素の参照
+         ========================================= */
+      const els = {
+        toast: document.getElementById('toast'),
+
+        // 画面コンテナ
+        setupScreen: document.getElementById('setup-screen'),
+        boardScreen: document.getElementById('board-screen'),
+
+        // モード選択
+        tabOrder: document.getElementById('tab-order'),
+        tabCustom: document.getElementById('tab-custom'),
+        panelOrder: document.getElementById('panel-order'),
+        panelCustom: document.getElementById('panel-custom'),
+
+        // 順番モード
+        orderMaxText: document.getElementById('order-max-text'),
+        orderMinus: document.getElementById('order-minus'),
+        orderSlider: document.getElementById('order-slider'),
+        orderPlus: document.getElementById('order-plus'),
+        orderPresets: document.getElementById('order-presets'),
+
+        // カスタムモード
+        customPreview: document.getElementById('custom-preview'),
+        customClear: document.getElementById('custom-clear'),
+        customNumGrid: document.getElementById('custom-num-grid'),
+
+        // 範囲設定
+        limitTabMax: document.getElementById('limit-tab-max'),
+        limitTabCount: document.getElementById('limit-tab-count'),
+        limitPanelMax: document.getElementById('limit-panel-max'),
+        limitPanelCount: document.getElementById('limit-panel-count'),
+        maxValueInput: document.getElementById('max-value-input'),
+        maxValueSlider: document.getElementById('max-value-slider'),
+        maxValuePresets: document.getElementById('max-value-presets'),
+        countValueInput: document.getElementById('count-value-input'),
+        countValueSlider: document.getElementById('count-value-slider'),
+        countValuePresets: document.getElementById('count-value-presets'),
+
+        startBtn: document.getElementById('start-btn'),
+
+        // 倍数表示画面
+        backBtn: document.getElementById('back-btn'),
+        boardSummary: document.getElementById('board-summary'),
+        printTitle: document.getElementById('print-title'),
+        printBtn: document.getElementById('print-btn'),
+        resetColorsBtn: document.getElementById('reset-colors-btn'),
+        colorBtns: document.querySelectorAll('.color-btn'),
+        cmBtn: document.getElementById('cm-btn'),
+        layoutPacked: document.getElementById('layout-packed'),
+        layoutAligned: document.getElementById('layout-aligned'),
+        lcmBanner: document.getElementById('lcm-banner'),
+        lcmBadge: document.getElementById('lcm-badge'),
+        lcmValue: document.getElementById('lcm-value'),
+        lcmSub: document.getElementById('lcm-sub'),
+        jumpLcmBtn: document.getElementById('jump-lcm-btn'),
+        boardScrollWrap: document.getElementById('board-scroll-wrap'),
+        boardTable: document.getElementById('board-table')
+      };
+
+      /* =========================================
+         ユーティリティ関数
+         ========================================= */
+      let toastTimer = null;
+      function showToast(message) {
+        els.toast.textContent = message;
+        els.toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          els.toast.classList.remove('show');
+        }, 2600);
+      }
+      // 最大公約数（ユークリッドの互除法・BigInt対応）
+      function gcdBig(a, b) {
+        let x = a < 0n ? -a : a;
+        let y = b < 0n ? -b : b;
+        while (y !== 0n) {
+          const t = y;
+          y = x % y;
+          x = t;
+        }
+        return x;
+      }
+
+      // 2数の最小公倍数（BigInt対応）
+      function lcmTwoBig(a, b) {
+        if (a === 0n || b === 0n) return 0n;
+        const res = (a / gcdBig(a, b)) * b;
+        return res < 0n ? -res : res;
+      }
+
+      // 配列全体の最小公倍数（BigIntで返し、1〜50などの巨大な値でも桁落ちを防止）
+      function calcLCM(numbers) {
+        if (!numbers || numbers.length === 0) return null;
+        return numbers.reduce((acc, cur) => lcmTwoBig(acc, BigInt(cur)), BigInt(numbers[0]));
+      }
+
+      function clamp(val, min, max) {
+        return Math.max(min, Math.min(max, val));
+      }
+
+      /* =========================================
+         設定画面の初期化・状態同期
+         ========================================= */
+      function initSetupUI() {
+        // カスタムモードの1〜30ボタン生成
+        els.customNumGrid.innerHTML = '';
+        const fragment = document.createDocumentFragment();
+        for (let i = 1; i <= 30; i++) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'num-pick-btn';
+          btn.textContent = String(i);
+          btn.dataset.num = String(i);
+          fragment.appendChild(btn);
+        }
+        els.customNumGrid.appendChild(fragment);
+        syncSetupUI();
+      }
+
+      function setOrderMax(val) {
+        state.orderMax = clamp(Number(val) || 9, 2, 50);
+        syncSetupUI();
+      }
+
+      function toggleCustomNumber(num) {
+        const idx = state.customSelected.indexOf(num);
+        if (idx >= 0) {
+          state.customSelected.splice(idx, 1);
+        } else {
+          state.customSelected.push(num);
+          state.customSelected.sort((a, b) => a - b);
+        }
+        syncSetupUI();
+      }
+
+      function setMaxValue(val) {
+        state.maxValue = clamp(Number(val) || 100, 10, 500);
+        syncSetupUI();
+      }
+
+      function setCountValue(val) {
+        state.countValue = clamp(Number(val) || 20, 5, 100);
+        syncSetupUI();
+      }
+
+      function syncSetupUI() {
+        // モード切替
+        const isOrder = state.mode === 'order';
+        els.tabOrder.classList.toggle('active', isOrder);
+        els.tabOrder.setAttribute('aria-selected', String(isOrder));
+        els.tabCustom.classList.toggle('active', !isOrder);
+        els.tabCustom.setAttribute('aria-selected', String(!isOrder));
+        els.panelOrder.classList.toggle('hidden', !isOrder);
+        els.panelCustom.classList.toggle('hidden', isOrder);
+
+        // 順番モード
+        els.orderMaxText.textContent = String(state.orderMax);
+        els.orderSlider.value = String(state.orderMax);
+        els.orderMinus.disabled = state.orderMax <= 2;
+        els.orderPlus.disabled = state.orderMax >= 50;
+        els.orderPresets.querySelectorAll('.chip-btn').forEach(btn => {
+          btn.classList.toggle('active', Number(btn.dataset.val) === state.orderMax);
+        });
+
+        // カスタムモード
+        els.customPreview.textContent = state.customSelected.length === 0 ? '1つ以上えらんでね' : '';
+        const selectedSet = new Set(state.customSelected);
+        els.customNumGrid.querySelectorAll('.num-pick-btn').forEach(btn => {
+          btn.classList.toggle('selected', selectedSet.has(Number(btn.dataset.num)));
+        });
+
+        // 範囲タブ
+        const isMax = state.limitType === 'max';
+        els.limitTabMax.classList.toggle('active', isMax);
+        els.limitTabCount.classList.toggle('active', !isMax);
+        els.limitPanelMax.classList.toggle('hidden', !isMax);
+        els.limitPanelCount.classList.toggle('hidden', isMax);
+
+        // 最大値・個数
+        els.maxValueInput.value = String(state.maxValue);
+        els.maxValueSlider.value = String(state.maxValue);
+        els.maxValuePresets.querySelectorAll('.chip-btn').forEach(btn => {
+          btn.classList.toggle('active', Number(btn.dataset.val) === state.maxValue);
+        });
+
+        els.countValueInput.value = String(state.countValue);
+        els.countValueSlider.value = String(state.countValue);
+        els.countValuePresets.querySelectorAll('.chip-btn').forEach(btn => {
+          btn.classList.toggle('active', Number(btn.dataset.val) === state.countValue);
+        });
+      }
+
+      /* =========================================
+         設定画面のイベントリスナー
+         ========================================= */
+      els.tabOrder.addEventListener('click', () => {
+        state.mode = 'order';
+        syncSetupUI();
+      });
+
+      els.tabCustom.addEventListener('click', () => {
+        state.mode = 'custom';
+        syncSetupUI();
+      });
+
+      els.orderMinus.addEventListener('click', () => setOrderMax(state.orderMax - 1));
+      els.orderPlus.addEventListener('click', () => setOrderMax(state.orderMax + 1));
+      els.orderSlider.addEventListener('input', (e) => setOrderMax(e.target.value));
+      els.orderPresets.addEventListener('click', (e) => {
+        const btn = e.target.closest('.chip-btn');
+        if (btn) setOrderMax(btn.dataset.val);
+      });
+
+      els.customClear.addEventListener('click', () => {
+        state.customSelected = [];
+        syncSetupUI();
+      });
+
+      // カスタム数字ボタンのイベントデリゲーション
+      els.customNumGrid.addEventListener('click', (e) => {
+        const btn = e.target.closest('.num-pick-btn');
+        if (btn) toggleCustomNumber(Number(btn.dataset.num));
+      });
+
+      els.limitTabMax.addEventListener('click', () => {
+        state.limitType = 'max';
+        syncSetupUI();
+      });
+
+      els.limitTabCount.addEventListener('click', () => {
+        state.limitType = 'count';
+        syncSetupUI();
+      });
+
+      els.maxValueInput.addEventListener('change', (e) => setMaxValue(e.target.value));
+      els.maxValueSlider.addEventListener('input', (e) => setMaxValue(e.target.value));
+      els.maxValuePresets.addEventListener('click', (e) => {
+        const btn = e.target.closest('.chip-btn');
+        if (btn) setMaxValue(btn.dataset.val);
+      });
+
+      els.countValueInput.addEventListener('change', (e) => setCountValue(e.target.value));
+      els.countValueSlider.addEventListener('input', (e) => setCountValue(e.target.value));
+      els.countValuePresets.addEventListener('click', (e) => {
+        const btn = e.target.closest('.chip-btn');
+        if (btn) setCountValue(btn.dataset.val);
+      });
+
+      // OKボタン：倍数表示画面へ遷移
+      els.startBtn.addEventListener('click', () => {
+        // 入力中の数値も確定させる
+        setMaxValue(els.maxValueInput.value);
+        setCountValue(els.countValueInput.value);
+
+        if (state.mode === 'custom' && state.customSelected.length === 0) {
+          showToast('倍数を 1つ以上 えらんでね！');
+          return;
+        }
+
+        // 表示する倍数リストを作成
+        if (state.mode === 'order') {
+          state.activeNumbers = Array.from({ length: state.orderMax }, (_, i) => i + 1);
+        } else {
+          state.activeNumbers = [...state.customSelected].sort((a, b) => a - b);
+        }
+
+        // 表示状態を初期化
+        state.paintedCells.clear();
+        state.showCommonMultiples = false;
+        state.layoutMode = 'packed';
+        state.cmTargets = new Set(state.activeNumbers);
+        refreshLcm();
+
+        // 最大表示数を計算（数直線モード用）
+        if (state.limitType === 'max') {
+          state.displayMaxValue = state.maxValue;
+        } else {
+          const largestBase = state.activeNumbers[state.activeNumbers.length - 1];
+          state.displayMaxValue = largestBase * state.countValue;
+        }
+
+        // 画面切り替え
+        els.setupScreen.classList.add('hidden');
+        els.boardScreen.classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'instant' });
+
+        updateBoardSummary();
+        syncBoardControls();
+        renderBoard();
+      });
+
+      /* =========================================
+         倍数表示画面のロジック・描画
+         ========================================= */
+      function updateBoardSummary() {
+        let numsText = '';
+        if (state.mode === 'order') {
+          numsText = `1〜${state.orderMax}の倍数`;
+        } else if (state.activeNumbers.length <= 5) {
+          numsText = `${state.activeNumbers.join('・')}の倍数`;
+        } else {
+          numsText = `${state.activeNumbers.slice(0, 4).join('・')}など（${state.activeNumbers.length}個）`;
+        }
+
+        const rangeText = state.limitType === 'max'
+          ? `${state.maxValue}まで`
+          : `各${state.countValue}こ`;
+
+        const summaryText = `${numsText}（${rangeText}）`;
+        els.boardSummary.textContent = summaryText;
+        els.printTitle.textContent = `ばいすうの表：${summaryText}`;
+      }
+
+      // 各行に表示する倍数の配列を取得
+      function getMultiplesForBase(base) {
+        const result = [];
+        if (state.limitType === 'max') {
+          for (let v = base; v <= state.maxValue; v += base) {
+            result.push(v);
+          }
+        } else {
+          for (let i = 1; i <= state.countValue; i++) {
+            result.push(base * i);
+          }
+        }
+        return result;
+      }
+
+      // 公倍数の対象にしている行（小さい順）
+      function getTargets() {
+        return state.activeNumbers.filter(n => state.cmTargets.has(n));
+      }
+
+      function refreshLcm() {
+        const t = getTargets();
+        state.lcmValue = t.length >= 2 ? calcLCM(t) : null;
+      }
+
+      // 「同じ数でそろえる」で表示する最大の数（重くならないよう上限あり）
+      function getAlignedLimit() {
+        const safeLimit = Math.min(500, Math.max(50, Math.floor(ALIGNED_MAX_CELLS / state.activeNumbers.length)));
+        return { max: Math.min(state.displayMaxValue, safeLimit), capped: state.displayMaxValue > safeLimit };
+      }
+
+      // 表示範囲内で「対象の行すべてに共通して現れる公倍数」のリストを取得
+      function getVisibleCommonMultiples() {
+        const targets = getTargets();
+        if (targets.length < 2 || !state.lcmValue) return [];
+        const lcmBig = state.lcmValue;
+
+        // すべての行の最大値のうち最小のものが、全行に共通して登場できる上限
+        let commonUpperBound;
+        if (state.limitType === 'max') {
+          commonUpperBound = state.maxValue;
+        } else {
+          commonUpperBound = targets[0] * state.countValue;
+        }
+
+        const upperBig = BigInt(commonUpperBound);
+        if (lcmBig > upperBig) return [];
+
+        const lcmNum = Number(lcmBig);
+        const list = [];
+        for (let v = lcmNum; v <= commonUpperBound; v += lcmNum) {
+          list.push(v);
+        }
+        return list;
+      }
+
+      function syncBoardControls() {
+        // カラーパレット
+        els.colorBtns.forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.color === state.paintColor);
+        });
+
+        // 公倍数ボタン
+        els.cmBtn.classList.toggle('active', state.showCommonMultiples);
+        els.cmBtn.setAttribute('aria-pressed', String(state.showCommonMultiples));
+
+        // レイアウト切替
+        els.layoutPacked.classList.toggle('active', state.layoutMode === 'packed');
+        els.layoutAligned.classList.toggle('active', state.layoutMode === 'aligned');
+
+        updateLcmBanner();
+      }
+
+      function updateLcmBanner() {
+        if (!state.showCommonMultiples) {
+          els.lcmBanner.classList.add('hidden');
+          return;
+        }
+        els.lcmBanner.classList.remove('hidden');
+
+        if (getTargets().length < 2) {
+          els.lcmBadge.classList.add('hidden');
+          els.lcmValue.textContent = '';
+          els.lcmSub.textContent = '左の「○の倍数」を2つ以上えらんでね';
+          els.jumpLcmBtn.classList.add('hidden');
+          return;
+        }
+
+        els.lcmBadge.classList.remove('hidden');
+        els.lcmValue.textContent = state.lcmValue.toLocaleString('ja-JP');
+        if (getVisibleCommonMultiples().length > 0) {
+          els.lcmSub.textContent = '';
+          els.jumpLcmBtn.classList.remove('hidden');
+        } else {
+          els.lcmSub.textContent = 'この はんいには ありません';
+          els.jumpLcmBtn.classList.add('hidden');
+        }
+      }
+
+      // 数字セルの生成
+      function createNumCell(base, val, visibleCMs, lcm) {
+        const isTarget = state.cmTargets.has(base);
+        const cell = document.createElement('button');
+        cell.type = 'button';
+        cell.className = 'num-cell';
+        cell.textContent = String(val);
+        cell.dataset.base = String(base);
+        cell.dataset.val = String(val);
+
+        // 桁数に応じた文字サイズ調整
+        if (val >= 1000) {
+          cell.classList.add('digits-4');
+        } else if (val >= 100) {
+          cell.classList.add('digits-3');
+        }
+
+        // 手動塗りつぶし色の適用
+        const key = `${base}-${val}`;
+        const painted = state.paintedCells.get(key);
+        if (painted) {
+          cell.classList.add(`paint-${painted}`);
+        }
+
+        // 公倍数ハイライトの適用
+        if (state.showCommonMultiples && isTarget && visibleCMs.has(val)) {
+          cell.classList.add('cm-highlight');
+          if (lcm !== null && BigInt(val) === lcm) {
+            const tag = document.createElement('span');
+            tag.className = 'cm-tag is-lcm';
+            tag.textContent = '最小';
+            cell.appendChild(tag);
+          }
+        }
+
+        return cell;
+      }
+
+      // 数直線モードの目盛り行
+      function buildRuler(from, to, visibleCMs) {
+        const rulerRow = document.createElement('div');
+        rulerRow.className = 'ruler-row';
+        const spacer = document.createElement('div');
+        spacer.className = 'ruler-spacer';
+        rulerRow.appendChild(spacer);
+        for (let n = from; n <= to; n++) {
+          const tick = document.createElement('div');
+          tick.className = 'ruler-tick';
+          tick.textContent = String(n);
+          if (state.showCommonMultiples && visibleCMs.has(n)) tick.classList.add('is-cm');
+          rulerRow.appendChild(tick);
+        }
+        return rulerRow;
+      }
+
+      // 1行分（見出し＋マス）を生成。from/to は「そろえる」モードの範囲
+      function buildRow(base, rowIndex, from, to, visibleCMs, lcm) {
+        const row = document.createElement('div');
+        row.className = 'mult-row';
+
+        const label = document.createElement('button');
+        label.type = 'button';
+        label.className = 'row-label' + (state.cmTargets.has(base) ? '' : ' off');
+        label.dataset.base = String(base);
+        label.textContent = `${base}の倍数`;
+        label.style.backgroundColor = ROW_COLORS[rowIndex % ROW_COLORS.length];
+        row.appendChild(label);
+
+        const cellsWrap = document.createElement('div');
+        cellsWrap.className = 'cells-container';
+
+        if (state.layoutMode !== 'aligned') {
+          getMultiplesForBase(base).forEach(val => {
+            cellsWrap.appendChild(createNumCell(base, val, visibleCMs, lcm));
+          });
+        } else {
+          const multipleSet = new Set(getMultiplesForBase(base));
+          for (let n = from; n <= to; n++) {
+            if (multipleSet.has(n)) {
+              cellsWrap.appendChild(createNumCell(base, n, visibleCMs, lcm));
+            } else {
+              const empty = document.createElement('div');
+              empty.className = 'empty-cell';
+              empty.setAttribute('aria-hidden', 'true');
+              cellsWrap.appendChild(empty);
+            }
+          }
+        }
+        row.appendChild(cellsWrap);
+        return row;
+      }
+
+      // メインのグリッド描画
+      function renderBoard() {
+        els.boardTable.innerHTML = '';
+        els.boardTable.classList.toggle('layout-packed', state.layoutMode === 'packed');
+        els.boardTable.classList.toggle('layout-aligned', state.layoutMode === 'aligned');
+        const fragment = document.createDocumentFragment();
+        const visibleCMs = new Set(getVisibleCommonMultiples());
+        const lcm = state.lcmValue;
+        const isAligned = state.layoutMode === 'aligned';
+        const alignedMax = isAligned ? getAlignedLimit().max : 0;
+
+        if (isAligned && state.printing) {
+          // 印刷時は PRINT_CHUNK マスずつ区切って縦に積む（右が切れないように）
+          for (let from = 1; from <= alignedMax; from += PRINT_CHUNK) {
+            const to = Math.min(alignedMax, from + PRINT_CHUNK - 1);
+            const block = document.createElement('div');
+            block.className = 'print-block';
+            block.appendChild(buildRuler(from, to, visibleCMs));
+            state.activeNumbers.forEach((base, i) => block.appendChild(buildRow(base, i, from, to, visibleCMs, lcm)));
+            fragment.appendChild(block);
+          }
+        } else {
+          if (isAligned) fragment.appendChild(buildRuler(1, alignedMax, visibleCMs));
+          state.activeNumbers.forEach((base, i) => fragment.appendChild(buildRow(base, i, 1, alignedMax, visibleCMs, lcm)));
+        }
+
+        els.boardTable.appendChild(fragment);
+      }
+
+      // セルタップ時の色塗り・消去処理
+      function handleCellTap(cell, key) {
+        const currentColor = state.paintedCells.get(key);
+
+        // 既存の手塗りクラスを外す
+        cell.classList.remove('paint-yellow', 'paint-blue', 'paint-green', 'paint-pink');
+
+        if (state.paintColor === 'eraser' || currentColor === state.paintColor) {
+          // 消しゴム、または同じ色を再タップした場合は色を消す
+          state.paintedCells.delete(key);
+        } else {
+          // 選択中の色で塗る
+          state.paintedCells.set(key, state.paintColor);
+          cell.classList.add(`paint-${state.paintColor}`);
+        }
+
+      }
+
+      /* =========================================
+         倍数表示画面のイベントリスナー
+         ========================================= */
+      els.backBtn.addEventListener('click', () => {
+        els.boardScreen.classList.add('hidden');
+        els.setupScreen.classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      });
+
+      // 印刷ボタン
+      function enterPrint() {
+        if (state.printing) return;
+        state.printing = true;
+        if (state.layoutMode === 'aligned' && !els.boardScreen.classList.contains('hidden')) renderBoard();
+      }
+
+      function exitPrint() {
+        if (!state.printing) return;
+        state.printing = false;
+        if (state.layoutMode === 'aligned' && !els.boardScreen.classList.contains('hidden')) renderBoard();
+      }
+
+      window.addEventListener('beforeprint', enterPrint);
+      window.addEventListener('afterprint', exitPrint);
+      if (window.matchMedia) {
+        const mq = window.matchMedia('print');
+        const onChange = (e) => (e.matches ? enterPrint() : exitPrint());
+        if (mq.addEventListener) mq.addEventListener('change', onChange);
+        else if (mq.addListener) mq.addListener(onChange);
+      }
+      window.__baisu = { enterPrint, exitPrint, state };
+
+      els.printBtn.addEventListener('click', () => {
+        enterPrint();
+        try {
+          window.print();
+        } catch (err) {
+          showToast('印刷ダイアログを開けませんでした。ブラウザの印刷機能をお使いください。');
+        }
+      });
+
+      els.resetColorsBtn.addEventListener('click', () => {
+        state.paintedCells.clear();
+        state.showCommonMultiples = false;
+        syncBoardControls();
+        renderBoard();
+      });
+
+      // 倍数マスのタップ処理（イベントデリゲーションで500まででも軽快に動作）
+      els.boardTable.addEventListener('click', (e) => {
+        // 見出しタップ：公倍数の対象に入れる／はずす
+        const label = e.target.closest('.row-label');
+        if (label) {
+          const base = Number(label.dataset.base);
+          if (state.cmTargets.has(base)) state.cmTargets.delete(base);
+          else state.cmTargets.add(base);
+          refreshLcm();
+          syncBoardControls();
+          renderBoard();
+          return;
+        }
+        const cell = e.target.closest('.num-cell');
+        if (!cell) return;
+        const key = `${cell.dataset.base}-${cell.dataset.val}`;
+        handleCellTap(cell, key);
+      });
+
+      // カラーパレット選択
+      els.colorBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.paintColor = btn.dataset.color;
+          syncBoardControls();
+        });
+      });
+
+      // 公倍数ボタン（トグル）
+      els.cmBtn.addEventListener('click', () => {
+        if (!state.showCommonMultiples && getTargets().length < 2) {
+          showToast('左の「○の倍数」を2つ以上えらんでね');
+          return;
+        }
+        state.showCommonMultiples = !state.showCommonMultiples;
+        syncBoardControls();
+        renderBoard();
+      });
+
+      // 表示形式切替
+      els.layoutPacked.addEventListener('click', () => {
+        if (state.layoutMode === 'packed') return;
+        state.layoutMode = 'packed';
+        syncBoardControls();
+        renderBoard();
+        els.boardScrollWrap.scrollTo({ left: 0, behavior: 'smooth' });
+      });
+
+      els.layoutAligned.addEventListener('click', () => {
+        if (state.layoutMode === 'aligned') return;
+        state.layoutMode = 'aligned';
+        syncBoardControls();
+        renderBoard();
+        const lim = getAlignedLimit();
+        if (lim.capped) showToast(`${lim.max}まで ならべています`);
+        els.boardScrollWrap.scrollTo({ left: 0, behavior: 'smooth' });
+      });
+
+      // 最小公倍数へスムーズスクロール
+      els.jumpLcmBtn.addEventListener('click', () => {
+        if (!state.lcmValue) return;
+        const first = getTargets()[0];
+        const target = els.boardTable.querySelector(`.num-cell[data-base="${first}"][data-val="${state.lcmValue.toString()}"]`);
+        if (target) {
+          const wrapRect = els.boardScrollWrap.getBoundingClientRect();
+          const cellRect = target.getBoundingClientRect();
+          const offsetLeft = cellRect.left - wrapRect.left + els.boardScrollWrap.scrollLeft - 140;
+          els.boardScrollWrap.scrollTo({
+            left: Math.max(0, offsetLeft),
+            behavior: 'smooth'
+          });
+        }
+      });
+
+      // iOSのピンチズーム抑制
+      document.addEventListener('gesturestart', (e) => e.preventDefault());
+
+      // 初期化実行
+      initSetupUI();
+    })();
+  </script>
+</body>
+</html>
